@@ -6,7 +6,7 @@ Uma implementacao experimental de relogio hibrido desenvolvida com HTML5 Canvas 
 
 O projeto esta configurado para execucao direta no navegador e compativel com GitHub Pages.
 
-Acesse a demonstracao: `https://elen.is-a.dev/analog-digital-canvas-clock/`
+Acesse a demonstracao: https://elen.is-a.dev/analog-digital-canvas-clock/
 
 
 
