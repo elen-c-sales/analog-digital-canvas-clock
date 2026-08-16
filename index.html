@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Digilog Clock</title>
+  
+  <!-- Fontes: JetBrains Mono para manter alinhamento estrito dos numerais -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #0a0c10;
+      --card-bg: rgba(18, 22, 31, 0.75);
+      --border: rgba(255, 255, 255, 0.08);
+      --hour-color: #f8fafc;
+      --min-color: #94a3b8;
+      --sec-color: #38bdf8;
+      --muted: #64748b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh; /* Evita quebra de viewport em browsers mobile */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.07) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.07) 0px, transparent 50%);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #f8fafc;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(16px, 3vh, 24px);
+      width: 100%;
+      padding: 16px;
+    }
+
+    .badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(0.65rem, 2vw, 0.75rem);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .clock-container {
+      position: relative;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: clamp(20px, 5vw, 28px);
+      padding: clamp(12px, 3vw, 24px);
+      box-shadow: 
+        0 20px 40px -15px rgba(0, 0, 0, 0.7),
+        0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      /* Mantém formato 1:1 adaptado à tela */
+      width: min(85vw, 75vh, 440px);
+      height: min(85vw, 75vh, 440px);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: clamp(12px, 3vw, 20px);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(0.65rem, 2vw, 0.75rem);
+      color: var(--muted);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+
+    .dot.hour { background-color: var(--hour-color); }
+    .dot.min { background-color: var(--min-color); }
+    .dot.sec { 
+      background-color: var(--sec-color); 
+      box-shadow: 0 0 8px var(--sec-color); 
+    }
+  </style>
+</head>
+<body>
+
+  <main class="wrapper">
+    <span class="badge">Hybrid Clock Experiment</span>
+
+    <div class="clock-container">
+      <!-- Resolução interna dobrada para nitidez em telas HiDPI/Retina -->
+      <canvas id="clockCanvas" width="880" height="880"></canvas>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><span class="dot hour"></span> Horas</div>
+      <div class="legend-item"><span class="dot min"></span> Minutos</div>
+      <div class="legend-item"><span class="dot sec"></span> Segundos</div>
+    </div>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('clockCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const SIZE = canvas.width;
+    const CENTER = SIZE / 2;
+
+    // Marcadores estáticos do mostrador
+    function drawDial() {
+      // Borda sutil de guia
+      ctx.beginPath();
+      ctx.arc(CENTER, CENTER, CENTER - 40, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // 12 pontos representando as horas do mostrador analógico
+      for (let i = 0; i < 12; i++) {
+        const angle = (i * 30) * (Math.PI / 180);
+        const x = CENTER + Math.sin(angle) * (CENTER - 50);
+        const y = CENTER - Math.cos(angle) * (CENTER - 50);
+
+        ctx.beginPath();
+        ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.fill();
+      }
+    }
+
+    /**
+     * Renderiza o ponteiro rotacionado desenhando o valor do tempo repetidamente
+     * ao longo do eixo radial Y negativo (apontando para cima antes da rotação).
+     */
+    function drawHand(value, repeatCount, angle, startRadius, stepRadius, fontSize, color, weight = '600') {
+      ctx.save();
+      
+      // Move origem para o centro do relógio e aplica rotação trigonométrica
+      ctx.translate(CENTER, CENTER);
+      ctx.rotate(angle);
+
+      ctx.font = `${weight} ${fontSize}px "JetBrains Mono", monospace`;
+      ctx.fillStyle = color;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // Pad com zero à esquerda para evitar flickering de largura
+      const label = String(value).padStart(2, '0');
+
+      for (let i = 0; i < repeatCount; i++) {
+        const y = -(startRadius + i * stepRadius);
+        ctx.fillText(label, 0, y);
+      }
+
+      ctx.restore();
+    }
+
+    function loop() {
+      ctx.clearRect(0, 0, SIZE, SIZE);
+
+      drawDial();
+
+      const now = new Date();
+      const hours = now.getHours() % 12;
+      const minutes = now.getMinutes();
+      const seconds = now.getSeconds();
+
+      // Conversão dos valores para ângulos radianos
+      // 360 / 60 = 6 deg por seg/min
+      // 360 / 12 = 30 deg por hora (+ compensação gradual pelos minutos)
+      const secAngle = (seconds * 6) * (Math.PI / 180);
+      const minAngle = (minutes * 6 + seconds * 0.1) * (Math.PI / 180);
+      const hourAngle = (hours * 30 + minutes * 0.5) * (Math.PI / 180);
+
+      // Eixo central
+      ctx.beginPath();
+      ctx.arc(CENTER, CENTER, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#38bdf8';
+      ctx.fill();
+
+      // Horas (curto, bold, destaque branco)
+      drawHand(hours === 0 ? 12 : hours, 4, hourAngle, 50, 48, 32, '#f8fafc', '800');
+
+      // Minutos (médio, tom neutro)
+      drawHand(minutes, 6, minAngle, 55, 46, 28, '#94a3b8', '600');
+
+      // Segundos (longo, cor de destaque com movimento dinâmico)
+      drawHand(seconds, 8, secAngle, 60, 42, 24, '#38bdf8', '600');
+
+      requestAnimationFrame(loop);
+    }
+
+    // Inicia ciclo de animação
+    loop();
+  </script>
+</body>
+</html>
