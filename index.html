@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Digilog Clock: relógio híbrido analógico-digital em HTML5 Canvas e JavaScript puro, com ponteiros formados por numerais radiais.">
   <meta name="theme-color" content="#0a0c10">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🕐%3C/text%3E%3C/svg%3E">
+  <link rel="icon" href="https://elen.is-a.dev/favicon.svg">
+  <link rel="alternate icon" href="https://elen.is-a.dev/favicon.ico">
   <meta property="og:title" content="Digilog Clock">
   <meta property="og:description" content="Relógio híbrido analógico-digital em HTML5 Canvas e JavaScript puro.">
   <meta property="og:image" content="https://github.com/elen-c-sales.png">
@@ -309,6 +310,10 @@
       // Segundos (longo, cor de destaque com movimento dinâmico)
 
       drawHand(seconds, 8, secAngle, 60, 42, 24, '#38bdf8', '600');
+
+      if (!prefersReducedMotion && !document.hidden) {
+        rafId = requestAnimationFrame(loop);
+      }
     }
 
     let rafId = null;
