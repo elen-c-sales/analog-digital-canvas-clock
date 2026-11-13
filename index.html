@@ -2,7 +2,9 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Digilog Clock: relógio híbrido analógico-digital em HTML5 Canvas e JavaScript puro, com ponteiros formados por numerais radiais.">
+  <meta name="theme-color" content="#0a0c10">
   <title>Digilog Clock</title>
   
   <!-- Fontes: JetBrains Mono para manter alinhamento estrito dos numerais -->
@@ -129,7 +131,8 @@
 
     <div class="clock-container">
       <!-- Resolução interna dobrada para nitidez em telas HiDPI/Retina -->
-      <canvas id="clockCanvas" width="880" height="880"></canvas>
+      <canvas id="clockCanvas" width="880" height="880" role="img" aria-label="Relógio híbrido analógico-digital"></canvas>
+      <noscript><p style="margin-top:12px;color:var(--muted);font-size:0.8rem;">Ative o JavaScript para ver o relógio.</p></noscript>
     </div>
 
     <div class="legend">
@@ -142,6 +145,7 @@
   <script>
     const canvas = document.getElementById('clockCanvas');
     const ctx = canvas.getContext('2d');
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const SIZE = canvas.width;
     const CENTER = SIZE / 2;
@@ -227,11 +231,16 @@
       // Segundos (longo, cor de destaque com movimento dinâmico)
       drawHand(seconds, 8, secAngle, 60, 42, 24, '#38bdf8', '600');
 
-      requestAnimationFrame(loop);
+      if (!prefersReducedMotion) requestAnimationFrame(loop);
     }
 
     // Inicia ciclo de animação
-    loop();
+    if (prefersReducedMotion) {
+      loop();
+      setInterval(loop, 1000);
+    } else {
+      loop();
+    }
   </script>
 </body>
 </html>
